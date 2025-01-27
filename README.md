@@ -49,7 +49,7 @@ Se crea el directorio en el que se guardará el proyecto:
 
 Se cambian el grupo y los permisos del directorio:
 ```bash
-sudo chown -R vagrant:www-data /var/www/pythonApp
+sudo chown -R $USER:www-data /var/www/pythonApp
 sudo chmod -R 775 /var/www/pythonApp
 ```
 
@@ -62,3 +62,71 @@ FLASK_ENV=production
 ```
 
 <img src="./htdocs/3.png">
+
+## Entorno virtual
+
+Es necesario situarse en el directorio del proyecto:  
+`cd /var/www/pythonApp`
+
+Inicializar el entorno:  
+`pipenv shell`
+
+<img src="./htdocs/4.png">
+
+Aparecerá el nombre del entorno al inicio del prompt del shell:  
+`(pythonApp) vagrant@practica:/var/www/pythonApp$`
+
+Instalación de dependencias necesarias:  
+`pipenv install flask gunicorn`
+
+<img src="./htdocs/5.png">
+
+Creación de aplicación Flask a modo de prueba:  
+`touch application.py wsgi.py`  
+Se edita el contenido:  
+`nano /var/www/pythonApp/application.py`
+```python
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    '''Index page route'''
+    return '<h1>App desplegada</h1>'
+```
+
+`nano /var/www/pythonApp/wsgi.py`
+```python
+from application import app
+
+if __name__ == '__main__':
+   app.run(debug=False)
+```
+
+Ejecución de la aplicación en la dirección *0.0.0.0* para que escuche en todas sus intefaces:  
+`flask run --host '0.0.0.0'`
+
+<img src="./htdocs/6.png">
+
+Acceso a la aplicación desde el navegador: *http://192.168.11.11:5000*
+
+<img src="./htdocs/7.png">
+
+Comprobación con Gunicorn tras parar el servidor con *Ctrl+C*:  
+`gunicorn --workers 4 --bind 0.0.0.0:5000 wsgi:app`  
+- **--workers 4** establece el número de hilos.  
+- **--bind 0.0.0.0:5000** establece la escucha por todas sus interfaces.  
+- **wsgi:app** donde el primer término es el nombre del archivo *wsgi.py* y el segundo es la instancia de la aplicación Flask dentro del archivo.
+
+<img src="./htdocs/8.png">
+
+Es necesario averiguar la ruta desde la que se ejecuta *Gunicorn* en el entorno virtual, será necesaria más adelante para el servicio de *systemd* para arrancar la aplicación. Para averiguar la ruta:  
+`which gunicorn`  
+Respuesta:  
+`/home/vagrant/.local/share/virtualenvs/pythonApp--CG28rcg/bin/gunicorn`
+
+<img src="./htdocs/9.png">
+
+Salir del entorno virtual:  
+`deactivate`
