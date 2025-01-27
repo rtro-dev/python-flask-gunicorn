@@ -151,10 +151,9 @@ After=network.target
 [Service]
 User=vagrant
 Group=www-data
-Environment="PATH=/home/vagrant/.local/share/virtualenvs/app-1lvW3LzD/bin"
+Environment="PATH=/home/vagrant/.local/share/virtualenvs/pythonApp--CG28rcg/bin"
 WorkingDirectory=/var/www/pythonApp
-ExecStart=/home/vagrant/.local/share/virtualenvs/app-1lvW3LzD/bin/gunicorn --workers 3
---bind unix:/var/www/app/pythonApp.sock wsgi:app
+ExecStart=/home/vagrant/.local/share/virtualenvs/pythonApp--CG28rcg/bin/gunicorn --workers 3 --bind unix:/var/www/pythonApp/pythonApp.sock wsgi:app
 
 [Install]
 WantedBy=multi-user.target
@@ -171,8 +170,57 @@ Se recargan los archivos de configuración de *systemd*:
 Se habilita y se inicia el servicio:
 ```bash
 sudo systemctl enable flask_app
-systemctl start flask_app
+sudo systemctl start flask_app
 ```
 
 <img src="./htdocs/10.png">
 
+### Configuración de Nginx
+
+Creación del archivo de cofiguración del sitio web:  
+`sudo nano /etc/nginx/sites-available/app.conf`  
+Contenido:
+```bash
+server {
+  listen 80;
+  server_name pythonapp.izv www.pythonapp.izv;
+
+  access_log /var/log/nginx/app.access.log;
+  error_log /var/log/nginx/app.error.log;
+
+  location / {
+    include proxy_params;
+    proxy_pass http://unix:/var/www/pythonApp/pythonApp.sock;
+  }
+}
+```
+
+Creación del link simbólico:  
+`sudo ln -s /etc/nginx/sites-available/app.conf /etc/nginx/sites-enabled/`  
+Comprobación:  
+`ls -l /etc/nginx/sites-enabled/ | grep app.conf`
+
+<img src="./htdocs/11.png">
+
+Comprobación de que la configuración de Nginx no contiene errores:  
+`sudo nginx -t`
+
+<img src="./htdocs/12.png">
+
+Reinicio y comprobación del servicio:
+```bash
+sudo systemctl restart nginx
+sudo systemctl status nginx
+```
+
+Se edita el archivo /etc/hosts para que asocie la IP de la máquina virtual al servidor.  
+En Windows está en el siguiente directorio:  
+`C:\Windows\System32\drivers\etc\hosts`  
+Se añade la asociación:  
+`192.168.11.11 pythonapp.izv www.pythonapp.izv`
+
+Se comprueba que se ha desplegado correctamente accediendo a la dirección:  
+- *http://pythonapp.izv/*  
+- *http://www.pythonapp.izv/*
+
+<img src="./htdocs/13.png">
