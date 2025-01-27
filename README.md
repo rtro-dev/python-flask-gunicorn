@@ -274,3 +274,80 @@ Arranque de Gunicorn tras parar el servidor:
 `gunicorn --workers 4 --bind 0.0.0.0:5000 wsgi:app`  
 <img src="./htdocs/16.png">
 
+Ruta de Gunicorn:  
+`which gunicorn`  
+Respuesta:  
+`/home/vagrant/.local/share/virtualenvs/msdocs-python-flask-webapp-quickstart-YrxIX3KC/bin/gunicorn`
+
+Se sale del entorno virtual:  
+`deactivate` o `exit`
+
+Continuación con Gunicorn y Nginx:
+```bash
+1.
+sudo systemctl start nginx
+sudo systemctl status nginx
+
+2.
+sudo nano /etc/systemd/system/flask_app2.service
+
+    [Unit]
+    Description=flask app service - App con flask y Gunicorn
+    After=network.target
+    [Service]
+    User=vagrant
+    Group=www-data
+    Environment="PATH=/home/vagrant/.local/share/virtualenvs/msdocs-python-flask-webapp-quickstart-YrxIX3KC/bin"
+    WorkingDirectory=/var/www/msdocs-python-flask-webapp-quickstart
+    ExecStart=/home/vagrant/.local/share/virtualenvs/msdocs-python-flask-webapp-quickstart-YrxIX3KC/bin/gunicorn --workers 3 --bind unix:/var/www/msdocs-python-flask-webapp-quickstart/msdocs-python-flask-webapp-quickstart.sock wsgi:app
+
+    [Install]
+    WantedBy=multi-user.target
+
+3.
+sudo systemctl daemon-reload
+
+4.
+sudo systemctl enable flask_app2
+sudo systemctl start flask_app2
+
+5.
+sudo nano /etc/nginx/sites-available/app2.conf
+
+    server {
+        listen 80;
+        server_name pythonapp2.izv www.pythonapp2.izv;
+
+        access_log /var/log/nginx/app.access.log;
+        error_log /var/log/nginx/app.error.log;
+
+        location / {
+            include proxy_params;
+            proxy_pass http://unix:/var/www/msdocs-python-flask-webapp-quickstart/msdocs-python-flask-webapp-quickstart.sock;
+        }
+    }
+
+6.
+sudo ln -s /etc/nginx/sites-available/app2.conf /etc/nginx/sites-enabled/
+
+7.
+ls -l /etc/nginx/sites-enabled/ | grep app2.conf
+sudo nginx -t
+
+8.
+sudo systemctl restart nginx
+sudo systemctl status nginx
+```
+
+Modificación de /etc/hosts para añadir la nueva aplicación:
+```bash
+C:\Windows\System32\drivers\etc\hosts
+
+192.168.11.11 pythonapp2.izv www.pythonapp2.izv
+```
+
+Se comprueba que se ha desplegado correctamente accediendo a la dirección:  
+- http://pythonapp2.izv/  
+- http://www.pythonapp2.izv/
+
+<img src="./htdocs/17.png">
