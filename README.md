@@ -8,7 +8,8 @@
 - [Entorno Virtual](#entorno-virtual)  
 - [Gunicorn](#gunicorn)  
     - [Configuración de Nginx](#configuración-de-nginx)  
-- [Tarea](#tarea)
+- [Tarea](#tarea)  
+- [Extracción de archivos](#extracción-de-archivos)
 
 <br>
 
@@ -16,14 +17,25 @@
 
 Se realiza la instalación de Nginx en la provisión de la sigueinte forma:
 ```Vagrantfile
-p.vm.provision "shell", name: "nginx", inline: <<-SHELL
-    apt-get update
-    apt-get install -y nginx git
-    mkdir -p /var/www/nginx_server/html
-    chown -R www-data:www-data /var/www/nginx_server/html
-    chmod -R 755 /var/www/nginx_server
-    systemctl restart nginx
-SHELL
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+    config.vm.define "practica" do |p|
+        p.vm.box = "debian/bullseye64"
+        p.vm.hostname = "practica"
+        p.vm.network "forwarded_port", guest: 8080, host: 8080
+        p.vm.network "private_network", ip: "192.168.11.11"
+        p.vm.provision "shell", name: "nginx", inline: <<-SHELL
+            apt-get update
+            apt-get install -y nginx git
+            mkdir -p /var/www/nginx_server/html
+            chown -R www-data:www-data /var/www/nginx_server/html
+            chmod -R 755 /var/www/nginx_server
+            systemctl restart nginx
+        SHELL
+    end # practica
+end # cofig
 ```
 
 ## Python *pip*
@@ -256,7 +268,7 @@ Instalación de dependencias:
 <img src="./htdocs/14.png">
 
 Creación de *wsgi.py*:  
-`nano /var/www/pythonApp/wsgi.py`  
+`nano /var/www/msdocs-python-flask-webapp-quickstart/wsgi.py`  
 ```bash
 from app import app
 
@@ -351,3 +363,23 @@ Se comprueba que se ha desplegado correctamente accediendo a la dirección:
 - http://www.pythonapp2.izv/
 
 <img src="./htdocs/17.png">
+
+## Extracción de archivos
+
+Viendo que todo ha funcionado correctamente, se procede a extraer los archivos necesarios para crear la provisión de forma completa:
+```bash
+sudo cp /var/www/pythonApp/.env /vagrant
+
+sudo cp /var/www/pythonApp/application.py /vagrant/app1
+sudo cp /var/www/pythonApp/wsgi.py /vagrant/app1
+sudo cp /etc/systemd/system/flask_app.service /vagrant/app1
+sudo cp /etc/nginx/sites-available/app.conf /vagrant/app1
+
+sudo cp /var/www/msdocs-python-flask-webapp-quickstart/wsgi.py /vagrant/app2
+sudo cp /etc/systemd/system/flask_app2.service /vagrant/app2
+sudo cp /etc/nginx/sites-available/app2.conf /vagrant/app2
+```
+
+### Actualización de Vagrantfile
+
+En este punto se ha actualizado la provisión en Vagrantfile.
