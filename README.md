@@ -130,3 +130,49 @@ Respuesta:
 
 Salir del entorno virtual:  
 `deactivate`
+
+## Gunicorn
+
+Primeramente, iniciar y comprobar Nginx:
+```bash
+sudo systemctl start nginx
+sudo systemctl status nginx
+```
+
+Fuera del entorno virtual, se debe crear un archivo *systemd* para que Gunicorn se ejecute como un servicio más del sistema.
+
+Creación del fichero:  
+`sudo nano /etc/systemd/system/flask_app.service`  
+Contenido:  
+```bash
+[Unit]
+Description=flask app service - App con flask y Gunicorn
+After=network.target
+[Service]
+User=vagrant
+Group=www-data
+Environment="PATH=/home/vagrant/.local/share/virtualenvs/app-1lvW3LzD/bin"
+WorkingDirectory=/var/www/pythonApp
+ExecStart=/home/vagrant/.local/share/virtualenvs/app-1lvW3LzD/bin/gunicorn --workers 3
+--bind unix:/var/www/app/pythonApp.sock wsgi:app
+
+[Install]
+WantedBy=multi-user.target
+```
+- **User** establece el usuario con permisos sobre el directorio.  
+- **Group** establece el usuario con permisos sobre el directorio.  
+- **Environment** establece el directorio *bin* dentro del entorno virtual.  
+- **WorkingDirectory** establece el directorio del proyecto
+- **ExecStart** establece el path donde se encuentra el ejecutable de Gunicorn dentro del entorno virtual, junto a las opciones y comandos con los que se iniciará.
+
+Se recargan los archivos de configuración de *systemd*:  
+`sudo systemctl daemon-reload`
+
+Se habilita y se inicia el servicio:
+```bash
+sudo systemctl enable flask_app
+systemctl start flask_app
+```
+
+<img src="./htdocs/10.png">
+
