@@ -8,6 +8,7 @@
 - [Entorno Virtual](#entorno-virtual)  
 - [Gunicorn](#gunicorn)  
     - [Configuración de Nginx](#configuración-de-nginx)  
+- [Tarea](#tarea)
 
 <br>
 
@@ -226,3 +227,35 @@ Se comprueba que se ha desplegado correctamente accediendo a la dirección:
 - *http://www.pythonapp.izv/*
 
 <img src="./htdocs/13.png">
+
+## Tarea
+
+Inicialmente se clonará el repositorio de GitHub en */var/www*:  
+`cd /var/www`  
+`sudo git clone https://github.com/Azure-Samples/msdocs-python-flask-webapp-quickstart`
+
+Activación del entorno virtual dentro del directorio del repositorio clonado:  
+```bash
+sudo chown -R $USER:www-data /var/www/msdocs-python-flask-webapp-quickstart
+
+sudo chmod -R 775 /var/www/msdocs-python-flask-webapp-quickstart
+
+nano /var/www/msdocs-python-flask-webapp-quickstart/.env
+
+    FLASK_APP=wsgi.py
+    FLASK_ENV=production
+
+cd /var/www/msdocs-python-flask-webapp-quickstart
+
+pipenv shell
+```
+
+Instalación de dependencias:  
+`pipenv install -r requirements.txt`
+
+<img src="./htdocs/14.png">
+
+Creación de *wsgi.py*:
+
+Arranque de Gunicorn:  
+`gunicorn --workers 4 --bind 0.0.0.0:5000 wsgi:app`
