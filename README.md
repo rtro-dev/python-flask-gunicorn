@@ -243,7 +243,7 @@ sudo chmod -R 775 /var/www/msdocs-python-flask-webapp-quickstart
 nano /var/www/msdocs-python-flask-webapp-quickstart/.env
 
     FLASK_APP=wsgi.py
-    FLASK_ENV=production
+    FLASK_DEBUG=True    (si se despliega pasa a ser "False")
 
 cd /var/www/msdocs-python-flask-webapp-quickstart
 
@@ -255,7 +255,22 @@ Instalación de dependencias:
 
 <img src="./htdocs/14.png">
 
-Creación de *wsgi.py*:
+Creación de *wsgi.py*:  
+`nano /var/www/pythonApp/wsgi.py`  
+```bash
+from app import app
 
-Arranque de Gunicorn:  
-`gunicorn --workers 4 --bind 0.0.0.0:5000 wsgi:app`
+if __name__ == '__main__':
+   app.run(debug=False)
+```
+
+Ejecución de la aplicacción para que escuche en todas sus interfaces:  
+`flask run --host '0.0.0.0'`
+
+Comprobación en: *http://192.168.11.11:5000*
+<img src="./htdocs/15.png">
+
+Arranque de Gunicorn tras parar el servidor:  
+`gunicorn --workers 4 --bind 0.0.0.0:5000 wsgi:app`  
+<img src="./htdocs/16.png">
+
